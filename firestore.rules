@@ -38,6 +38,7 @@ service cloud.firestore {
   match /tallyImports/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
   match /tallySnapshots/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
   match /unitConversionHistory/{id}{allow read,create:if master();allow update,delete:if false;}
+  match /userAudit/{id}{allow read,create:if master();allow update,delete:if false;}
   match /recountRequests/{id}{
     allow read:if master()||actual();
     allow create:if master();

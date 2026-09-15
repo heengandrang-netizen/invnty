@@ -249,34 +249,25 @@ function reports(m){m.innerHTML=`<div class="card"><h3>Audit Reports</h3><div cl
 $("#xlsx").onclick=()=>{let rows=reportRows(),{from,to}=reportRange(),data=[["Item","Unit","IN","OUT","Tally Closing","Actual Closing","Variance","Repeated Variance","Reason"],...rows],ws=XLSX.utils.aoa_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Inventory Report");XLSX.writeFile(wb,`inventory-${from.toISOString().slice(0,10)}-to-${to.toISOString().slice(0,10)}.xlsx`)};
 $("#pdf").onclick=()=>{let rows=reportRows(),{from,to}=reportRange(),J=window.jspdf?.jsPDF;if(!J)return alert("PDF library not loaded.");let d=new J({orientation:"landscape"});d.setFontSize(17);d.text("StockSync Pro - Inventory Audit Report",14,15);d.setFontSize(9);d.text(`${from.toLocaleDateString()} to ${to.toLocaleDateString()}`,14,21);d.autoTable({startY:26,head:[["Item","Unit","IN","OUT","Tally","Actual","Variance","Repeat","Reason"]],body:rows,styles:{fontSize:7.5,cellPadding:2.2},headStyles:{fillColor:[53,103,246]}});d.save(`inventory-${from.toISOString().slice(0,10)}-to-${to.toISOString().slice(0,10)}.pdf`)}}
 async function users(m){
- let u=await getDocs(collection(db,"users"));
- m.innerHTML=`<div class="card"><h3>Create User</h3>
- <p class="muted">Master creates the user's Name, PIN and access role. The user only needs those two login details.</p>
+ let u=await getDocs(collection(db,"users")),docs=u.docs.map(d=>({id:d.id,...d.data()}));
+ m.innerHTML=`<div class="card"><h3>User Access Management</h3>
+ <p class="muted">Master can create users, edit their name/role, disable access, or remove their app profile. Master role always has complete app access.</p>
  <div class="row"><input id="newName" placeholder="User name"><input id="newPin" type="password" inputmode="numeric" maxlength="12" placeholder="6–12 digit PIN">
  <select id="newRole"><option value="actual">Actual Stock User</option><option value="tally">Tally Upload User</option><option value="master">Master</option></select>
  <button id="createUser">Create User</button></div><p id="userMsg" class="muted"></p></div>
- <div class="card"><h3>Users & Rights</h3><div class="scroll"><table><tr><th>Name</th><th>Role</th><th>Active</th></tr>
- ${u.docs.map(d=>{let x=d.data();return`<tr><td>${esc(x.displayName||x.username||"")}</td><td>${esc(x.role||"")}</td><td>${x.active!==false?"Active":"Disabled"}</td></tr>`}).join("")}</table></div></div>`;
- $("#createUser").onclick=async()=>{
-   let name=$("#newName").value.trim(),pin=$("#newPin").value.trim(),role=$("#newRole").value,id=loginIdFromName(name),msg=$("#userMsg");
-   if(!id)return msg.textContent="Enter a valid user name.";
-   if(!/^\d{6,12}$/.test(pin))return msg.textContent="PIN must be 6–12 digits.";
-   $("#createUser").disabled=true;msg.textContent="Creating user…";
-   let secondary=null, secondaryAuth=null, cred=null;
-   try{
-     secondary=initializeApp(firebaseConfig,"userCreator-"+Date.now());
-     secondaryAuth=getAuth(secondary);
-     cred=await createUserWithEmailAndPassword(secondaryAuth,id+"@inventory.local",pin);
-     await setDoc(doc(db,"users",cred.user.uid),{username:id,displayName:name,role,active:true,createdAt:serverTimestamp(),createdBy:me.uid});
-     await signOut(secondaryAuth); await deleteApp(secondary);
-     msg.innerHTML=`<span class="good">Created successfully.</span> Give the user: Name <b>${esc(name)}</b> and their PIN.`;
-     setTimeout(()=>render("users"),1400);
-   }catch(e){
-     try{if(secondaryAuth)await signOut(secondaryAuth);if(secondary)await deleteApp(secondary)}catch{}
-     msg.textContent=e?.code==="auth/email-already-in-use"?"That user name already exists.":"Could not create user: "+(e?.code||"unknown error");
-     $("#createUser").disabled=false;
-   }
- }
+ <div class="card"><h3>Users & Rights</h3><div class="scroll"><table><tr><th>Name</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+ ${docs.map(x=>`<tr><td><b>${esc(x.displayName||x.username||"")}</b>${x.id===me.uid?'<div class="muted">Current Master</div>':""}</td>
+ <td><span class="status-chip ${x.role==="master"?"good-bg":""}">${esc(x.role||"")}</span></td>
+ <td>${x.active!==false?'<span class="status-chip good-bg">Active</span>':'<span class="status-chip bad-bg">Disabled</span>'}</td>
+ <td><div class="row"><button class="secondary" data-user-edit="${x.id}">Edit</button>
+ ${x.id!==me.uid?`<button class="secondary" data-user-toggle="${x.id}">${x.active!==false?"Disable":"Enable"}</button><button class="danger-soft" data-user-delete="${x.id}">Delete</button>`:'<span class="muted">Protected while logged in</span>'}</div></td></tr>`).join("")}</table></div></div>
+ <div id="userEditor"></div>`;
+ $("#createUser").onclick=async()=>{let name=$("#newName").value.trim(),pin=$("#newPin").value.trim(),role=$("#newRole").value,id=loginIdFromName(name),msg=$("#userMsg");if(!id)return msg.textContent="Enter a valid user name.";if(!/^\d{6,12}$/.test(pin))return msg.textContent="PIN must be 6–12 digits.";$("#createUser").disabled=true;msg.textContent="Creating user…";let secondary=null,secondaryAuth=null;
+ try{secondary=initializeApp(firebaseConfig,"userCreator-"+Date.now());secondaryAuth=getAuth(secondary);let cred=await createUserWithEmailAndPassword(secondaryAuth,id+"@inventory.local",pin);await setDoc(doc(db,"users",cred.user.uid),{username:id,displayName:name,role,active:true,createdAt:serverTimestamp(),createdBy:me.uid});await addDoc(collection(db,"userAudit"),{targetUid:cred.user.uid,action:"created",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});await signOut(secondaryAuth);await deleteApp(secondary);msg.innerHTML=`<span class="good">Created successfully.</span>`;setTimeout(()=>render("users"),700)}
+ catch(e){try{if(secondaryAuth)await signOut(secondaryAuth);if(secondary)await deleteApp(secondary)}catch{}msg.textContent=e?.code==="auth/email-already-in-use"?"That user name already exists.":"Could not create user: "+(e?.code||"unknown error");$("#createUser").disabled=false}}
+ document.querySelectorAll("[data-user-edit]").forEach(btn=>btn.onclick=()=>{let x=docs.find(v=>v.id===btn.dataset.userEdit);$("#userEditor").innerHTML=`<div class="card"><h3>Edit User</h3><div class="row"><input id="editUserName" value="${esc(x.displayName||x.username||"")}" placeholder="Display name"><select id="editUserRole"><option value="actual" ${x.role==="actual"?"selected":""}>Actual Stock User</option><option value="tally" ${x.role==="tally"?"selected":""}>Tally Upload User</option><option value="master" ${x.role==="master"?"selected":""}>Master — Full Access</option></select><button id="saveUserEdit">Save Changes</button><button class="secondary" id="cancelUserEdit">Cancel</button></div><p class="muted">Changing display name does not change the hidden Firebase login ID. This avoids accidentally breaking the user's Name + PIN authentication.</p></div>`;$("#cancelUserEdit").onclick=()=>$("#userEditor").innerHTML="";$("#saveUserEdit").onclick=async()=>{let name=$("#editUserName").value.trim(),role=$("#editUserRole").value;if(!name)return alert("Name required");if(x.id===me.uid&&role!=="master")return alert("You cannot remove your own Master role while logged in.");await setDoc(doc(db,"users",x.id),{displayName:name,role,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"edited",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});alert("User updated");render("users")}})}
+ document.querySelectorAll("[data-user-toggle]").forEach(btn=>btn.onclick=async()=>{let x=docs.find(v=>v.id===btn.dataset.userToggle),active=x.active===false;if(!confirm(`${active?"Enable":"Disable"} ${x.displayName||x.username}?`))return;await setDoc(doc(db,"users",x.id),{active,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:active?"enabled":"disabled",createdAt:serverTimestamp(),createdBy:me.uid});render("users")})
+ document.querySelectorAll("[data-user-delete]").forEach(btn=>btn.onclick=async()=>{let x=docs.find(v=>v.id===btn.dataset.userDelete);if(!confirm(`Delete ${x.displayName||x.username} from StockSync Pro?\n\nTheir historical stock/audit records will be retained. Their Firebase Authentication credential cannot be securely deleted from browser-only code, so this action disables access and removes the active app profile.`))return;await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"deleted_profile",oldRole:x.role,displayName:x.displayName||x.username,createdAt:serverTimestamp(),createdBy:me.uid});await setDoc(doc(db,"users",x.id),{active:false,deleted:true,deletedAt:serverTimestamp(),deletedBy:me.uid,role:x.role,displayName:x.displayName||x.username},{merge:true});alert("User access deleted/disabled. Historical audit data retained.");render("users")})
 }
 onAuthStateChanged(auth,async u=>{
  if(!u){if(await isBootstrapped())return login();return firstSetup();}
