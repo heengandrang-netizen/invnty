@@ -1,10 +1,10 @@
 {
-  "name": "StockSync Pro Premium",
+  "name": "StockSync Pro Premium Light",
   "short_name": "StockSync Pro",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#111827",
+  "background_color": "#f5f7fb",
+  "theme_color": "#f8faff",
   "icons": [
     {
       "src": "icon-192.svg",
