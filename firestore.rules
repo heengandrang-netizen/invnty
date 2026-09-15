@@ -30,8 +30,22 @@ service cloud.firestore {
     allow update,delete:if master();
   }
   match /items/{id}{allow read:if active();allow write:if master();}
-  match /stockLatest/{id}{allow read,create,update:if master()||tally();allow delete:if master();}
-  match /actualLatest/{id}{allow read,create,update:if master()||actual();allow delete:if master();}
+  match /stockLatest/{id}{
+    allow read:if master()||tally();
+    allow create,update:if (master()||tally())
+      && request.resource.data.qty is number && request.resource.data.qty>=0
+      && request.resource.data.updatedBy==request.auth.uid
+      && exists(/databases/$(database)/documents/items/$(id));
+    allow delete:if master();
+  }
+  match /actualLatest/{id}{
+    allow read:if master()||actual();
+    allow create,update:if (master()||actual())
+      && request.resource.data.qty is number && request.resource.data.qty>=0
+      && request.resource.data.updatedBy==request.auth.uid
+      && exists(/databases/$(database)/documents/items/$(id));
+    allow delete:if master();
+  }
   match /countSessions/{id}{allow read:if master()||actual();allow write:if master();}
   match /countEntries/{id}{
     allow read:if master()||actual();
@@ -40,11 +54,31 @@ service cloud.firestore {
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId))
       && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
-    allow update,delete:if false;
+    allow update:if (master()||actual())
+      && resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.itemId==resource.data.itemId
+      && request.resource.data.sessionId==resource.data.sessionId
+      && request.resource.data.qty is number && request.resource.data.qty>=0
+      && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
+    allow delete:if false;
   }
   match /actualHistory/{id}{allow read:if master();allow create:if master()||actual();allow update,delete:if false;}
-  match /tallyImports/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
-  match /tallySnapshots/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
+  match /tallyImports/{id}{
+    allow read:if master()||tally();
+    allow create:if (master()||tally()) && request.resource.data.createdBy==request.auth.uid;
+    allow update:if (master()||tally())
+      && resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdBy==resource.data.createdBy
+      && request.resource.data.fileHash==resource.data.fileHash
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","matched","created","rowCount","error","completedAt"]);
+    allow delete:if false;
+  }
+  match /tallySnapshots/{id}{
+    allow read:if master()||tally();
+    allow create:if (master()||tally()) && request.resource.data.createdBy==request.auth.uid;
+    allow update,delete:if false;
+  }
   match /unitConversionHistory/{id}{allow read,create:if master();allow update,delete:if false;}
   match /userAudit/{id}{allow read,create:if master();allow update,delete:if false;}
   match /recountRequests/{id}{
@@ -56,7 +90,15 @@ service cloud.firestore {
       && request.resource.data.completedBy==request.auth.uid);
     allow delete:if false;
   }
-  match /movements/{id}{allow read,create,update:if master();allow delete:if false;}
+  match /movements/{id}{
+    allow read:if master();
+    allow create:if master()
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.qty is number && request.resource.data.qty>0
+      && request.resource.data.type in ["IN","OUT"]
+      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
+    allow update,delete:if false;
+  }
   match /variances/{id}{allow read,write:if master();}
   match /approvals/{id}{allow read,create:if master();allow update,delete:if false;}
   match /{document=**}{allow read,write:if false;}
