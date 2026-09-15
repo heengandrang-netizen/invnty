@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8faff">
-<link rel="manifest" href="manifest.json"><title>StockSync Pro v2</title>
+<link rel="manifest" href="manifest.json"><title>StockSync Pro v10.2 Premium</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
@@ -121,6 +121,58 @@ body:before{height:360px;background:
  .count-entry{padding:14px}.count-entry .row{gap:8px}.count-entry input,.count-entry select{width:100%;flex-basis:130px}
  .sticky-actions button{flex:1}.mobile-hide{display:none}.grid{gap:8px}
 }
+</style>
+<style>
+/* v10.2 Executive Pearl — premium light UI */
+:root{
+ --canvas:#f4f7fb;--surface:#ffffff;--surface2:#f9fbff;--ink:#17233a;--muted2:#77849a;
+ --line:#e5eaf2;--primary:#315fdb;--primary2:#684fd3;--success:#0b946a;--warning:#b97816;--danger:#c94659;
+ --shadow:0 10px 32px rgba(30,45,75,.065);--shadow2:0 18px 48px rgba(30,45,75,.09)
+}
+body{background:
+ radial-gradient(900px 380px at 12% -10%,rgba(49,95,219,.10),transparent 65%),
+ radial-gradient(760px 320px at 96% 0%,rgba(104,79,211,.07),transparent 68%),
+ linear-gradient(180deg,#fbfcff 0,#f4f7fb 440px)}
+.app{max-width:1540px;padding:18px 24px 34px}
+.topbar{min-height:58px;padding:4px 3px 12px;border-bottom:1px solid rgba(226,232,241,.9)}
+.brand{font-size:20px;letter-spacing:-.025em}.brand-mark{gap:11px}.logo-dot{width:38px;height:38px;border-radius:13px;background:linear-gradient(145deg,#315fdb,#684fd3);box-shadow:0 10px 24px rgba(49,95,219,.22)}
+nav{display:flex;gap:5px;margin:14px 0 15px;padding:6px;background:rgba(255,255,255,.86);border:1px solid #e3e8f1;border-radius:16px;box-shadow:0 7px 24px rgba(34,49,78,.05);backdrop-filter:blur(14px)}
+nav button{border:0!important;box-shadow:none!important;background:transparent!important;color:#6c7890!important;font-weight:750;padding:9px 13px;border-radius:11px}
+nav button:hover{background:#f4f7fc!important;color:#263754!important}
+nav button.active{background:linear-gradient(135deg,#edf3ff,#f2efff)!important;color:#315fdb!important;box-shadow:inset 0 0 0 1px rgba(49,95,219,.10)!important}
+.premium-hero{min-height:82px;padding:18px 21px;border-radius:20px;box-shadow:var(--shadow);background:linear-gradient(120deg,#fff 0%,#f7faff 58%,#f8f5ff 100%)}
+.hero-title{font-size:14px;color:#263754}.hero-sub{font-size:12px}
+.card{border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:19px;background:rgba(255,255,255,.96)}
+.card:hover{box-shadow:var(--shadow2);border-color:#dfe5ef}
+.grid{gap:12px}.grid>.card{min-height:108px;position:relative;overflow:hidden}
+.grid>.card:after{content:"";position:absolute;width:72px;height:72px;border-radius:50%;right:-27px;top:-29px;background:rgba(49,95,219,.045)}
+.stat-label{color:#8390a4;font-size:10.5px}.kpi{font-size:29px;letter-spacing:-.04em;margin-top:5px}
+button{background:linear-gradient(135deg,#315fdb,#426fe4);box-shadow:0 6px 14px rgba(49,95,219,.16);font-weight:760}
+button:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(49,95,219,.20)}
+button.secondary{background:#fff!important;color:#526078!important;border:1px solid #dfe5ee!important;box-shadow:0 2px 7px rgba(30,45,75,.035)!important}
+input,select,textarea{border:1px solid #dfe5ee;background:#fbfcfe;box-shadow:inset 0 1px 2px rgba(31,46,76,.025)}
+input:focus,select:focus,textarea:focus{background:#fff;border-color:#7f9ced;box-shadow:0 0 0 4px rgba(49,95,219,.09)}
+table{border-collapse:separate;border-spacing:0}th{position:sticky;top:0;z-index:2;background:#f7f9fc!important;color:#6f7c91!important;text-transform:uppercase;letter-spacing:.045em;font-size:10px}td{border-bottom:1px solid #edf0f5}tr:hover td{background:#fbfcff}
+.status-chip{border:1px solid rgba(120,135,160,.12)}
+.count-entry{border-radius:17px}.count-entry.is-pending{border-left:4px solid #315fdb}.count-entry.is-done{border-left:4px solid #0b946a}
+.login.card{border-radius:24px;box-shadow:0 24px 70px rgba(31,46,76,.13);border:1px solid #e2e7f0}
+#net{background:#eaf8f3;color:#087a59;border-color:#d4eee5}
+@media(min-width:1100px){
+ body:has(nav button:nth-child(5)) .app{display:grid;grid-template-columns:210px minmax(0,1fr);grid-template-rows:auto auto 1fr;column-gap:20px}
+ body:has(nav button:nth-child(5)) .topbar{grid-column:1/-1}
+ body:has(nav button:nth-child(5)) nav{grid-column:1;grid-row:2/4;align-self:start;position:sticky;top:14px;display:flex;flex-direction:column;padding:9px;margin:14px 0 0;border-radius:18px}
+ body:has(nav button:nth-child(5)) nav button{text-align:left;width:100%;padding:11px 13px}
+ body:has(nav button:nth-child(5)) .premium-hero{grid-column:2;grid-row:2;margin-top:14px}
+ body:has(nav button:nth-child(5)) main{grid-column:2;grid-row:3}
+}
+@media(max-width:700px){
+ .app{padding:10px 10px 86px}.topbar{padding:3px 2px 9px}.brand{font-size:17px}.logo-dot{width:34px;height:34px}
+ nav{position:fixed;left:8px;right:8px;bottom:8px;top:auto;z-index:60;margin:0;padding:5px;overflow-x:auto;justify-content:flex-start;box-shadow:0 16px 45px rgba(28,42,70,.18)}
+ nav button{min-width:max-content;min-height:45px;padding:8px 11px}
+ .premium-hero{min-height:auto;padding:14px 15px;border-radius:17px}.hero-title{font-size:13px}
+ .card{border-radius:16px;padding:14px}.grid>.card{min-height:92px}.kpi{font-size:25px}
+ table{font-size:12px}.scroll{border-radius:12px}
+}
 </style></head><body><div id="app" class="app"></div>
 <script type="module">
 import{initializeApp,deleteApp}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
@@ -179,12 +231,15 @@ function shell(){let a=tabs[me.role]||[];app.innerHTML=`<div class="row topbar">
 <div class="hero-sub">${me.role==="master"?"Live reconciliation, counting and audit visibility in one workspace.":me.role==="actual"?"Fast blind counting with automatic unit conversion.":"Upload and validate Tally inventory safely."}</div></div>
 <div class="hero-badge"><i></i>${navigator.onLine?"Live sync":"Offline mode"}</div></div><main id="main"></main>`;$("#out").onclick=()=>signOut(auth);document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));b.classList.add("active");render(b.dataset.tab)});render(a[0]);}
 addEventListener("online",()=>{$("#net")&&($("#net").textContent="Synced ✓")});addEventListener("offline",()=>{$("#net")&&($("#net").textContent="Offline")});
-function sub(){onSnapshot(collection(db,"items"),s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});onSnapshot(collection(db,"stockLatest"),s=>{latest=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));refresh()});onSnapshot(collection(db,"actualLatest"),s=>{actual=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));refresh()});onSnapshot(collection(db,"countSessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});
+function sub(){onSnapshot(collection(db,"items"),s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});
+if(me.role==="master"||me.role==="tally")onSnapshot(collection(db,"stockLatest"),s=>{latest=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));refresh()},e=>console.warn("stockLatest listener",e.code));
+if(me.role==="master"||me.role==="actual")onSnapshot(collection(db,"actualLatest"),s=>{actual=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));refresh()},e=>console.warn("actualLatest listener",e.code));
+onSnapshot(collection(db,"countSessions"),s=>{sessions=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});
 if(me.role==="master"||me.role==="actual")onSnapshot(collection(db,"countEntries"),s=>{countEntries=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});
 if(me.role==="master"||me.role==="actual")onSnapshot(collection(db,"recountRequests"),s=>{recounts=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});
 if(me.role==="master"){onSnapshot(query(collection(db,"movements"),orderBy("createdAt","desc"),limit(300)),s=>{movements=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});onSnapshot(collection(db,"variances"),s=>{variances=s.docs.map(d=>({id:d.id,...d.data()}));refresh()});onSnapshot(query(collection(db,"tallyImports"),orderBy("createdAt","desc"),limit(100)),s=>{imports=s.docs.map(d=>({id:d.id,...d.data()}));refresh()})}}
 function refresh(){let t=document.querySelector("[data-tab].active");if(t)render(t.dataset.tab)}
-function table(){return`<div class="card"><h3>Tally vs Actual</h3><div class="scroll"><table><tr><th>Item</th><th>Tally</th><th>Actual</th><th>Variance</th><th>Status</th><th>Last Count</th></tr>${items.map(i=>{let d=dif(i.id);return`<tr><td><b>${esc(i.name)}</b><div class="muted">${esc((i.aliases||[]).join(", "))}</div></td><td>${latest[i.id]?.qty??"-"}</td><td>${actual[i.id]?.qty??"-"}${actual[i.id]?.inputMode&&actual[i.id]?.inputMode!=="base"?`<div class="muted">${actual[i.id].inputMode==="pack"?`${actual[i.id].inputPackQty} ${esc(actual[i.id].packUnit||"pack")}`:`${actual[i.id].inputPackQty} ${esc(actual[i.id].packUnit||"pack")} + ${actual[i.id].inputBaseQty} ${esc(actual[i.id].unit||"unit")}`}</div>`:""}</td><td class="${d<0?"bad":d>0?"warn":"good"}">${d}</td><td>${d===0?"Matched":d<0?"Short":"Excess"}</td><td>${dt(actual[i.id]?.updatedAt)}</td></tr>`}).join("")}</table></div></div>`}
+function table(){return`<div class="card"><h3>Tally vs Actual</h3><div class="scroll"><table><tr><th>Item</th><th>Tally</th><th>Actual</th><th>Variance</th><th>Status</th><th>Last Count</th></tr>${items.length?items.map(i=>{let d=dif(i.id);return`<tr><td><b>${esc(i.name)}</b><div class="muted">${esc((i.aliases||[]).join(", "))}</div></td><td>${latest[i.id]?.qty??"-"}</td><td>${actual[i.id]?.qty??"-"}${actual[i.id]?.inputMode&&actual[i.id]?.inputMode!=="base"?`<div class="muted">${actual[i.id].inputMode==="pack"?`${actual[i.id].inputPackQty} ${esc(actual[i.id].packUnit||"pack")}`:`${actual[i.id].inputPackQty} ${esc(actual[i.id].packUnit||"pack")} + ${actual[i.id].inputBaseQty} ${esc(actual[i.id].unit||"unit")}`}</div>`:""}</td><td class="${d<0?"bad":d>0?"warn":"good"}">${d}</td><td>${d===0?"Matched":d<0?"Short":"Excess"}</td><td>${dt(actual[i.id]?.updatedAt)}</td></tr>`}).join(""):`<tr><td colspan="6"><div class="empty">No inventory items yet. Add items from Item Master.</div></td></tr>`}</table></div></div>`}
 function render(t){let m=$("#main");if(!m)return;if(t==="dashboard"){let repeat=items.filter(i=>num(actual[i.id]?.varianceStreak)>=2).length,un=items.filter(i=>actual[i.id]?.qty==null).length,matched=items.filter(i=>actual[i.id]?.qty!=null&&dif(i.id)===0).length,rate=items.length?Math.round((items.length-un)/items.length*100):0;m.innerHTML=`<div class="section-title">Live inventory pulse</div><div class="grid"><div class="card"><div class="stat-label">Total SKUs</div><div class="kpi">${items.length}</div></div><div class="card"><div class="stat-label">Counted</div><div class="kpi good">${items.length-un}</div></div><div class="card"><div class="stat-label">Matched</div><div class="kpi good">${matched}</div></div><div class="card"><div class="stat-label">Shortage</div><div class="kpi bad">${items.filter(i=>dif(i.id)<0).length}</div></div><div class="card"><div class="stat-label">Excess</div><div class="kpi warn">${items.filter(i=>dif(i.id)>0).length}</div></div><div class="card"><div class="stat-label">Repeated Variance</div><div class="kpi bad">${repeat}</div></div></div><div class="card"><div class="row"><div class="grow"><b>Physical verification progress</b><div class="muted">${items.length-un} of ${items.length} items currently have an actual count</div></div><b>${rate}%</b></div><div class="progress-wrap" style="margin-top:10px"><div class="progress-fill" style="width:${rate}%"></div></div></div>${table()}`};if(t==="items")itemsView(m);if(t==="tally")tally(m);if(t==="counts")counts(m);if(t==="actual")actualView(m);if(t==="movement")movement(m);if(t==="variance")varianceView(m);if(t==="reports")reports(m);if(t==="users")users(m)}
 function itemsView(m){m.innerHTML=`<div class="card"><h3>Item Master</h3>
 <p class="muted">Create or edit inventory names, aliases and unit conversion. Every conversion change is saved separately so old count history remains auditable.</p>
@@ -221,7 +276,7 @@ document.querySelectorAll("[data-skip]").forEach(btn=>btn.onclick=()=>{let c=btn
 };
 $("#search").oninput=draw;$("#pendingOnly").onchange=draw;$("#sess").onchange=draw;draw()}
 function drawUnitEntry(id){let i=items.find(x=>x.id===id),mode=$("#mode_"+id)?.value,box=$("#entry_"+id);if(!i||!box)return;let base=esc(i.unit||"Unit"),pack=esc(i.packUnit||"Pack");box.innerHTML=mode==="base"?`<input id="base_${id}" type="number" step="any" min="0" placeholder="${base} quantity">`:mode==="pack"?`<input id="pack_${id}" type="number" step="any" min="0" placeholder="${pack} quantity">`:`<input id="pack_${id}" type="number" step="1" min="0" placeholder="${pack}"><span>+</span><input id="base_${id}" type="number" step="any" min="0" placeholder="${base}">`;box.querySelectorAll("input").forEach(x=>x.oninput=()=>previewUnitCount(id));previewUnitCount(id)}
-function countToBase(id){let i=items.find(x=>x.id===id),has=i?.packUnit&&num(i.packSize)>0,mode=$("#mode_"+id)?.value||"base";let base=Number($("#base_"+id)?.value||0),pack=Number($("#pack_"+id)?.value||0);if(base<0||pack<0||!Number.isFinite(base)||!Number.isFinite(pack))return null;let qty=has?(mode==="base"?base:mode==="pack"?pack*num(i.packSize):pack*num(i.packSize)+base):base;return{qty,mode,baseQty:base,packQty:pack,packSize:num(i?.packSize),unit:i?.unit||"",packUnit:i?.packUnit||""}}
+function countToBase(id){let i=items.find(x=>x.id===id),has=i?.packUnit&&num(i.packSize)>0,mode=$("#mode_"+id)?.value||"base",be=$("#base_"+id),pe=$("#pack_"+id),baseRaw=be?.value??"",packRaw=pe?.value??"";if(mode==="base"&&baseRaw==="")return null;if(mode==="pack"&&packRaw==="")return null;if(mode==="mixed"&&baseRaw===""&&packRaw==="")return null;let base=Number(baseRaw||0),pack=Number(packRaw||0);if(base<0||pack<0||!Number.isFinite(base)||!Number.isFinite(pack))return null;let qty=has?(mode==="base"?base:mode==="pack"?pack*num(i.packSize):pack*num(i.packSize)+base):base;return{qty,mode,baseQty:base,packQty:pack,packSize:num(i?.packSize),unit:i?.unit||"",packUnit:i?.packUnit||""}}
 function previewUnitCount(id){let c=countToBase(id),el=$("#calc_"+id);if(!el||!c)return;el.innerHTML=`Calculated: <b>${c.qty}</b> ${esc(c.unit||"unit")}`}
 async function saveCount(id,silent=false){let sess=$("#sess")?.value,c=countToBase(id),qty=c?.qty;if(!sess||!c||!Number.isFinite(qty)){alert("Open session and valid quantity required");return false}let item=items.find(x=>x.id===id),countRef=doc(collection(db,"countEntries"));await setDoc(countRef,{sessionId:sess,itemId:id,qty,inputMode:c.mode,inputBaseQty:c.baseQty,inputPackQty:c.packQty,packSize:c.packSize,unit:c.unit,packUnit:c.packUnit,createdAt:serverTimestamp(),createdBy:me.uid});
 if(item.sensitive){let prior=countEntries.filter(x=>x.sessionId===sess&&x.itemId===id&&x.createdBy!==me.uid);if(!prior.length){alert("First blind count saved. A second user must verify this sensitive item.");return true}let other=prior[prior.length-1];if(num(other.qty)!==qty){alert("Dual count mismatch. Master review required.");return true}}
@@ -249,29 +304,30 @@ function reports(m){m.innerHTML=`<div class="card"><h3>Audit Reports</h3><div cl
 $("#xlsx").onclick=()=>{let rows=reportRows(),{from,to}=reportRange(),data=[["Item","Unit","IN","OUT","Tally Closing","Actual Closing","Variance","Repeated Variance","Reason"],...rows],ws=XLSX.utils.aoa_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Inventory Report");XLSX.writeFile(wb,`inventory-${from.toISOString().slice(0,10)}-to-${to.toISOString().slice(0,10)}.xlsx`)};
 $("#pdf").onclick=()=>{let rows=reportRows(),{from,to}=reportRange(),J=window.jspdf?.jsPDF;if(!J)return alert("PDF library not loaded.");let d=new J({orientation:"landscape"});d.setFontSize(17);d.text("StockSync Pro - Inventory Audit Report",14,15);d.setFontSize(9);d.text(`${from.toLocaleDateString()} to ${to.toLocaleDateString()}`,14,21);d.autoTable({startY:26,head:[["Item","Unit","IN","OUT","Tally","Actual","Variance","Repeat","Reason"]],body:rows,styles:{fontSize:7.5,cellPadding:2.2},headStyles:{fillColor:[53,103,246]}});d.save(`inventory-${from.toISOString().slice(0,10)}-to-${to.toISOString().slice(0,10)}.pdf`)}}
 async function users(m){
- let u=await getDocs(collection(db,"users")),docs=u.docs.map(d=>({id:d.id,...d.data()}));
- m.innerHTML=`<div class="card"><h3>User Access Management</h3>
- <p class="muted">Master can create users, edit their name/role, disable access, or remove their app profile. Master role always has complete app access.</p>
- <div class="row"><input id="newName" placeholder="User name"><input id="newPin" type="password" inputmode="numeric" maxlength="12" placeholder="6–12 digit PIN">
- <select id="newRole"><option value="actual">Actual Stock User</option><option value="tally">Tally Upload User</option><option value="master">Master</option></select>
- <button id="createUser">Create User</button></div><p id="userMsg" class="muted"></p></div>
- <div class="card"><h3>Users & Rights</h3><div class="scroll"><table><tr><th>Name</th><th>Role</th><th>Status</th><th>Actions</th></tr>
- ${docs.map(x=>`<tr><td><b>${esc(x.displayName||x.username||"")}</b>${x.id===me.uid?'<div class="muted">Current Master</div>':""}</td>
- <td><span class="status-chip ${x.role==="master"?"good-bg":""}">${esc(x.role||"")}</span></td>
- <td>${x.active!==false?'<span class="status-chip good-bg">Active</span>':'<span class="status-chip bad-bg">Disabled</span>'}</td>
- <td><div class="row"><button class="secondary" data-user-edit="${x.id}">Edit</button>
- ${x.id!==me.uid?`<button class="secondary" data-user-toggle="${x.id}">${x.active!==false?"Disable":"Enable"}</button><button class="danger-soft" data-user-delete="${x.id}">Delete</button>`:'<span class="muted">Protected while logged in</span>'}</div></td></tr>`).join("")}</table></div></div>
- <div id="userEditor"></div>`;
- $("#createUser").onclick=async()=>{let name=$("#newName").value.trim(),pin=$("#newPin").value.trim(),role=$("#newRole").value,id=loginIdFromName(name),msg=$("#userMsg");if(!id)return msg.textContent="Enter a valid user name.";if(!/^\d{6,12}$/.test(pin))return msg.textContent="PIN must be 6–12 digits.";$("#createUser").disabled=true;msg.textContent="Creating user…";let secondary=null,secondaryAuth=null;
- try{secondary=initializeApp(firebaseConfig,"userCreator-"+Date.now());secondaryAuth=getAuth(secondary);let cred=await createUserWithEmailAndPassword(secondaryAuth,id+"@inventory.local",pin);await setDoc(doc(db,"users",cred.user.uid),{username:id,displayName:name,role,active:true,createdAt:serverTimestamp(),createdBy:me.uid});await addDoc(collection(db,"userAudit"),{targetUid:cred.user.uid,action:"created",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});await signOut(secondaryAuth);await deleteApp(secondary);msg.innerHTML=`<span class="good">Created successfully.</span>`;setTimeout(()=>render("users"),700)}
- catch(e){try{if(secondaryAuth)await signOut(secondaryAuth);if(secondary)await deleteApp(secondary)}catch{}msg.textContent=e?.code==="auth/email-already-in-use"?"That user name already exists.":"Could not create user: "+(e?.code||"unknown error");$("#createUser").disabled=false}}
- document.querySelectorAll("[data-user-edit]").forEach(btn=>btn.onclick=()=>{let x=docs.find(v=>v.id===btn.dataset.userEdit);$("#userEditor").innerHTML=`<div class="card"><h3>Edit User</h3><div class="row"><input id="editUserName" value="${esc(x.displayName||x.username||"")}" placeholder="Display name"><select id="editUserRole"><option value="actual" ${x.role==="actual"?"selected":""}>Actual Stock User</option><option value="tally" ${x.role==="tally"?"selected":""}>Tally Upload User</option><option value="master" ${x.role==="master"?"selected":""}>Master — Full Access</option></select><button id="saveUserEdit">Save Changes</button><button class="secondary" id="cancelUserEdit">Cancel</button></div><p class="muted">Changing display name does not change the hidden Firebase login ID. This avoids accidentally breaking the user's Name + PIN authentication.</p></div>`;$("#cancelUserEdit").onclick=()=>$("#userEditor").innerHTML="";$("#saveUserEdit").onclick=async()=>{let name=$("#editUserName").value.trim(),role=$("#editUserRole").value;if(!name)return alert("Name required");if(x.id===me.uid&&role!=="master")return alert("You cannot remove your own Master role while logged in.");await setDoc(doc(db,"users",x.id),{displayName:name,role,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"edited",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});alert("User updated");render("users")}})}
- document.querySelectorAll("[data-user-toggle]").forEach(btn=>btn.onclick=async()=>{let x=docs.find(v=>v.id===btn.dataset.userToggle),active=x.active===false;if(!confirm(`${active?"Enable":"Disable"} ${x.displayName||x.username}?`))return;await setDoc(doc(db,"users",x.id),{active,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:active?"enabled":"disabled",createdAt:serverTimestamp(),createdBy:me.uid});render("users")})
- document.querySelectorAll("[data-user-delete]").forEach(btn=>btn.onclick=async()=>{let x=docs.find(v=>v.id===btn.dataset.userDelete);if(!confirm(`Delete ${x.displayName||x.username} from StockSync Pro?\n\nTheir historical stock/audit records will be retained. Their Firebase Authentication credential cannot be securely deleted from browser-only code, so this action disables access and removes the active app profile.`))return;await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"deleted_profile",oldRole:x.role,displayName:x.displayName||x.username,createdAt:serverTimestamp(),createdBy:me.uid});await setDoc(doc(db,"users",x.id),{active:false,deleted:true,deletedAt:serverTimestamp(),deletedBy:me.uid,role:x.role,displayName:x.displayName||x.username},{merge:true});alert("User access deleted/disabled. Historical audit data retained.");render("users")})
+ const snap=await getDocs(collection(db,"users"));
+ const docs=snap.docs.map(d=>({id:d.id,...d.data()}));
+ m.innerHTML=`<div class="card"><h3>User Access Management</h3><p class="muted">Master can create users, edit their name/role, disable access, or remove their app profile. Master always has complete app access.</p><div class="row"><input id="newName" placeholder="User name"><input id="newPin" type="password" inputmode="numeric" maxlength="12" placeholder="6–12 digit PIN"><select id="newRole"><option value="actual">Actual Stock User</option><option value="tally">Tally Upload User</option><option value="master">Master</option></select><button id="createUser">Create User</button></div><p id="userMsg" class="muted"></p></div><div class="card"><h3>Users & Rights</h3><div class="scroll"><table><tr><th>Name</th><th>Role</th><th>Status</th><th>Actions</th></tr>${docs.map(x=>`<tr><td><b>${esc(x.displayName||x.username||"")}</b>${x.id===me.uid?'<div class="muted">Current Master</div>':""}</td><td><span class="status-chip ${x.role==="master"?"good-bg":""}">${esc(x.role||"")}</span></td><td>${x.active!==false?'<span class="status-chip good-bg">Active</span>':'<span class="status-chip bad-bg">Disabled</span>'}</td><td><div class="row"><button class="secondary" data-user-edit="${x.id}">Edit</button>${x.id!==me.uid?`<button class="secondary" data-user-toggle="${x.id}">${x.active!==false?"Disable":"Enable"}</button><button class="danger-soft" data-user-delete="${x.id}">Delete</button>`:'<span class="muted">Protected</span>'}</div></td></tr>`).join("")}</table></div></div><div id="userEditor"></div>`;
+ $("#createUser").onclick=async()=>{
+   const name=$("#newName").value.trim(),pin=$("#newPin").value.trim(),role=$("#newRole").value,id=loginIdFromName(name),msg=$("#userMsg");
+   if(!id)return msg.textContent="Enter a valid user name."; if(!/^\d{6,12}$/.test(pin))return msg.textContent="PIN must be 6–12 digits.";
+   $("#createUser").disabled=true; msg.textContent="Creating user…"; let secondary=null,secondaryAuth=null;
+   try{secondary=initializeApp(firebaseConfig,"userCreator-"+Date.now());secondaryAuth=getAuth(secondary);const cred=await createUserWithEmailAndPassword(secondaryAuth,id+"@inventory.local",pin);await setDoc(doc(db,"users",cred.user.uid),{username:id,displayName:name,role,active:true,createdAt:serverTimestamp(),createdBy:me.uid});await addDoc(collection(db,"userAudit"),{targetUid:cred.user.uid,action:"created",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});await signOut(secondaryAuth);await deleteApp(secondary);msg.innerHTML='<span class="good">Created successfully.</span>';setTimeout(()=>render("users"),700)}
+   catch(e){try{if(secondaryAuth)await signOut(secondaryAuth);if(secondary)await deleteApp(secondary)}catch{} msg.textContent=e?.code==="auth/email-already-in-use"?"That user name already exists.":"Could not create user: "+(e?.code||e?.message||"unknown error");$("#createUser").disabled=false}
+ };
+ document.querySelectorAll("[data-user-edit]").forEach(btn=>btn.onclick=()=>{
+   const x=docs.find(v=>v.id===btn.dataset.userEdit); $("#userEditor").innerHTML=`<div class="card"><h3>Edit User</h3><div class="row"><input id="editUserName" value="${esc(x.displayName||x.username||"")}" placeholder="Display name"><select id="editUserRole"><option value="actual" ${x.role==="actual"?"selected":""}>Actual Stock User</option><option value="tally" ${x.role==="tally"?"selected":""}>Tally Upload User</option><option value="master" ${x.role==="master"?"selected":""}>Master — Full Access</option></select><button id="saveUserEdit">Save Changes</button><button class="secondary" id="cancelUserEdit">Cancel</button></div><p class="muted">Display-name edits do not change the hidden login ID.</p></div>`;
+   $("#cancelUserEdit").onclick=()=>$("#userEditor").innerHTML="";
+   $("#saveUserEdit").onclick=async()=>{const name=$("#editUserName").value.trim(),role=$("#editUserRole").value;if(!name)return alert("Name required");if(x.id===me.uid&&role!=="master")return alert("You cannot remove your own Master role while logged in.");await setDoc(doc(db,"users",x.id),{displayName:name,role,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"edited",role,displayName:name,createdAt:serverTimestamp(),createdBy:me.uid});render("users")};
+ });
+ document.querySelectorAll("[data-user-toggle]").forEach(btn=>btn.onclick=async()=>{const x=docs.find(v=>v.id===btn.dataset.userToggle),active=x.active===false;if(!confirm(`${active?"Enable":"Disable"} ${x.displayName||x.username}?`))return;await setDoc(doc(db,"users",x.id),{active,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:active?"enabled":"disabled",createdAt:serverTimestamp(),createdBy:me.uid});render("users")});
+ document.querySelectorAll("[data-user-delete]").forEach(btn=>btn.onclick=async()=>{const x=docs.find(v=>v.id===btn.dataset.userDelete);if(!confirm(`Delete/disable ${x.displayName||x.username}? Historical audit records will remain.`))return;await addDoc(collection(db,"userAudit"),{targetUid:x.id,action:"deleted_profile",oldRole:x.role,displayName:x.displayName||x.username,createdAt:serverTimestamp(),createdBy:me.uid});await setDoc(doc(db,"users",x.id),{active:false,deleted:true,deletedAt:serverTimestamp(),deletedBy:me.uid},{merge:true});render("users")});
 }
+
 onAuthStateChanged(auth,async u=>{
  if(!u){if(await isBootstrapped())return login();return firstSetup();}
  try{await profile(u);shell();sub()}catch{await signOut(auth);login("Inactive or missing profile")}
 });
-if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
+if("serviceWorker"in navigator){
+ navigator.serviceWorker.register("./sw.js").then(r=>r.update()).catch(e=>console.warn("Service worker:",e));
+}
 </script></body></html>

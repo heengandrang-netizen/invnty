@@ -1,0 +1,16 @@
+STOCKSYNC PRO v10.1 — GITHUB PAGES FIX
+
+IMPORTANT:
+1. Upload the CONTENTS of this folder to the ROOT of your GitHub Pages branch/repository.
+   index.html must be directly at /invnty/index.html — do not upload an extra inventory-reconcile-pwa folder around it.
+2. Keep firebase-config.js, manifest.json, sw.js and icons beside index.html.
+3. Firebase Console > Authentication > Settings > Authorized domains:
+   add: heengandrang-netizen.github.io
+4. Authentication > Sign-in method: Email/Password must be enabled.
+5. Firestore Database must exist and publish the included firestore.rules.
+6. After deploying, hard refresh once or clear site data/service worker if an old cached build remains.
+
+ROOT CAUSE FIXED:
+v10 had a JavaScript syntax error in User Administration. Because the main module could not parse,
+none of the app startup code executed. v10.1 passes Node JavaScript syntax validation.
+The old HTML title also still said “StockSync Pro v2”; it now says v10.1.
