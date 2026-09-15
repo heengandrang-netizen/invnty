@@ -1,10 +1,10 @@
 {
-  "name": "StockSync Pro Premium Light",
+  "name": "StockSync Pro — Ledger",
   "short_name": "StockSync Pro",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f5f7fb",
-  "theme_color": "#f8faff",
+  "background_color": "#0A0D13",
+  "theme_color": "#0A0D13",
   "icons": [
     {
       "src": "icon-192.svg",
