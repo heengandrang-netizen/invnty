@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signed(){return request.auth!=null;}
+  function p(){return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;}
+  function active(){return signed() && p().active==true;}
+  function master(){return active() && p().role=="master";}
+  function actual(){return active() && p().role=="actual";}
+  function tally(){return active() && p().role=="tally";}
+
+  match /users/{uid}{allow read:if master()||(signed()&&request.auth.uid==uid);allow write:if master();}
+  match /items/{id}{allow read:if active();allow write:if master();}
+  match /stockLatest/{id}{allow read,create,update:if master()||tally();allow delete:if master();}
+  match /actualLatest/{id}{allow read,create,update:if master()||actual();allow delete:if master();}
+  match /countSessions/{id}{allow read:if master()||actual();allow write:if master();}
+  match /countEntries/{id}{allow read:if master()||actual();allow create:if master()||actual();allow update,delete:if false;}
+  match /actualHistory/{id}{allow read:if master();allow create:if master()||actual();allow update,delete:if false;}
+  match /tallyImports/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
+  match /tallySnapshots/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
+  match /movements/{id}{allow read,create,update:if master();allow delete:if false;}
+  match /variances/{id}{allow read,write:if master();}
+  match /approvals/{id}{allow read,create:if master();allow update,delete:if false;}
+  match /{document=**}{allow read,write:if false;}
+ }
+}
