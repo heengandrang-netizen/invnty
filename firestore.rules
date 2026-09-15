@@ -37,6 +37,13 @@ service cloud.firestore {
   match /actualHistory/{id}{allow read:if master();allow create:if master()||actual();allow update,delete:if false;}
   match /tallyImports/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
   match /tallySnapshots/{id}{allow read:if master()||tally();allow create:if master()||tally();allow update,delete:if false;}
+  match /unitConversionHistory/{id}{allow read,create:if master();allow update,delete:if false;}
+  match /recountRequests/{id}{
+    allow read:if master()||actual();
+    allow create:if master();
+    allow update:if master() || (actual() && resource.data.status=="open" && request.resource.data.status=="completed" && request.resource.data.itemId==resource.data.itemId);
+    allow delete:if false;
+  }
   match /movements/{id}{allow read,create,update:if master();allow delete:if false;}
   match /variances/{id}{allow read,write:if master();}
   match /approvals/{id}{allow read,create:if master();allow update,delete:if false;}
