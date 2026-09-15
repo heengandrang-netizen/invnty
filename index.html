@@ -62,8 +62,8 @@ td{color:#dfe6f6}tr:last-child td{border-bottom:0}tbody tr{transition:background
 @media(max-width:390px){.grid{grid-template-columns:1fr 1fr}.kpi{font-size:23px}.card{padding:12px}}
 </style></head><body><div id="app" class="app"></div>
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import{initializeApp,deleteApp}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 import{getFirestore,collection,doc,getDoc,getDocs,setDoc,addDoc,updateDoc,onSnapshot,query,orderBy,serverTimestamp,writeBatch,limit}from"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 import{firebaseConfig}from"./firebase-config.js";
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb),$=s=>document.querySelector(s),app=$("#app");
@@ -72,9 +72,44 @@ const tabs={master:["dashboard","items","tally","counts","actual","movement","va
 const L={dashboard:"Dashboard",items:"Items & Aliases",tally:"Tally Upload",counts:"Count Sessions",actual:"Actual Count",movement:"IN / OUT",variance:"Variance",reports:"Reports",users:"Users"};
 const esc=(x="")=>String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const dt=v=>{try{return v?.toDate?.().toLocaleString()||"-"}catch{return"-"}}, num=x=>Number(x||0), dif=id=>num(actual[id]?.qty)-num(latest[id]?.qty);
+
+function loginIdFromName(name){
+ return name.trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9._-]+/g,".").replace(/^\.+|\.+$/g,"");
+}
+async function isBootstrapped(){
+ try{return (await getDoc(doc(db,"system","bootstrap"))).exists()}catch{return true}
+}
+async function firstSetup(msg=""){
+ app.innerHTML=`<div class="login card"><div class="brand">Welcome to StockSync Pro</div>
+ <p class="muted" style="margin:8px 0 18px">First-time setup · Create the Master account to continue.</p>
+ <input id="setupName" placeholder="Master name" autocomplete="name">
+ <input id="setupPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Create PIN">
+ <input id="setupPin2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" placeholder="Confirm PIN">
+ <button id="setupGo" style="width:100%;margin-top:8px">Create Master & Continue</button>
+ <p class="bad">${esc(msg)}</p><p class="muted">This setup is available only until the first Master is created.</p></div>`;
+ $("#setupGo").onclick=async()=>{
+   let name=$("#setupName").value.trim(),pin=$("#setupPin").value.trim(),pin2=$("#setupPin2").value.trim(),id=loginIdFromName(name);
+   if(!id)return firstSetup("Enter a valid Master name");
+   if(!/^\d{6,12}$/.test(pin))return firstSetup("Use a 6–12 digit PIN");
+   if(pin!==pin2)return firstSetup("PINs do not match");
+   $("#setupGo").disabled=true; $("#setupGo").textContent="Creating Master…";
+   try{
+     if(await isBootstrapped()) return login("Master setup is already complete. Please login.");
+     let cred=await createUserWithEmailAndPassword(auth,id+"@inventory.local",pin);
+     let b=writeBatch(db);
+     b.set(doc(db,"users",cred.user.uid),{username:id,displayName:name,role:"master",active:true,createdAt:serverTimestamp(),createdBy:cred.user.uid});
+     b.set(doc(db,"system","bootstrap"),{initialized:true,masterUid:cred.user.uid,createdAt:serverTimestamp()});
+     await b.commit();
+     // auth state listener will load the new Master profile automatically
+   }catch(e){
+     try{await signOut(auth)}catch{}
+     firstSetup(e?.code==="auth/email-already-in-use"?"This Master name is already in use. Choose another name or login.":"Could not create Master. Ensure Email/Password Authentication and Firestore are enabled, then retry.");
+   }
+ };
+}
 function login(msg=""){app.innerHTML=`<div class="login card"><div class="brand">StockSync Pro</div><p class="muted" style="margin:7px 0 18px">Premium Inventory Audit & Reconciliation</p><input id="u" placeholder="Name" autocomplete="username" style="width:100%;margin:5px 0"><input id="p" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" placeholder="PIN" maxlength="12" style="width:100%;margin:5px 0"><button id="go" style="width:100%;margin-top:8px">Secure Login</button><p class="muted" style="text-align:center;margin:12px 0 0">Enter your name and PIN</p><p class="bad">${esc(msg)}</p></div>`;$("#go").onclick=async()=>{try{let name=$("#u").value.trim().toLowerCase(), pin=$("#p").value.trim();
 if(!name||!/^\d{4,12}$/.test(pin))return login("Enter your name and a 4–12 digit PIN");
-let loginId=name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9._-]+/g,".").replace(/^\.+|\.+$/g,"");
+let loginId=loginIdFromName(name);
 if(!loginId)return login("Please enter a valid name");
 await signInWithEmailAndPassword(auth,loginId+"@inventory.local",pin)}catch{login("Invalid username or PIN")}}}
 async function profile(u){let s=await getDoc(doc(db,"users",u.uid));if(!s.exists()||s.data().active===false)throw 0;me={uid:u.uid,...s.data()}}
@@ -95,7 +130,39 @@ function match(rows,fileName,hash){let nc=$("#nc").value,qc=$("#qc").value,norm=
 function movement(m){m.innerHTML=`<div class="card"><h3>Stock Ledger Entry</h3><div class="row"><select id="mi">${items.map(i=>`<option value="${i.id}">${esc(i.name)}</option>`)}</select><select id="ty"><option>IN</option><option>OUT</option></select><input id="mq" type="number" placeholder="Qty"><select id="rs"><option>Purchase</option><option>Sale</option><option>Return</option><option>Damage</option><option>Adjustment</option><option>Other</option></select><input id="ref" placeholder="Bill/Challan/Reference"><button id="ms">Save</button></div></div><div class="card scroll"><table><tr><th>Date</th><th>Item</th><th>Type</th><th>Qty</th><th>Reason</th><th>Ref</th></tr>${movements.map(x=>`<tr><td>${dt(x.createdAt)}</td><td>${esc(items.find(i=>i.id===x.itemId)?.name||"")}</td><td>${x.type}</td><td>${x.qty}</td><td>${esc(x.reason)}</td><td>${esc(x.reference||"")}</td></tr>`).join("")}</table></div>`;$("#ms").onclick=async()=>{let q=Number($("#mq").value);if(q<=0)return;await addDoc(collection(db,"movements"),{itemId:$("#mi").value,type:$("#ty").value,qty:q,reason:$("#rs").value,reference:$("#ref").value.trim(),createdAt:serverTimestamp(),createdBy:me.uid})}}
 function varianceView(m){let bad=items.filter(i=>dif(i.id)!==0);m.innerHTML=`<div class="card"><h3>Variance Investigation & Approval</h3><div class="scroll"><table><tr><th>Item</th><th>Variance</th><th>Pattern</th><th>Workflow</th></tr>${bad.map(i=>{let v=variances.find(x=>x.itemId===i.id),st=num(actual[i.id]?.varianceStreak);return`<tr><td>${esc(i.name)}</td><td class="${dif(i.id)<0?"bad":"warn"}">${dif(i.id)}</td><td>${st>=2?`<span class="bad">Repeated ×${st}</span>`:"New"}</td><td><select id="st_${i.id}"><option>Investigating</option><option>Reason Found</option><option>Adjustment Pending</option><option>Resolved</option></select><select id="vr_${i.id}"><option>Counting Error</option><option>Damage</option><option>Billing Error</option><option>Unrecorded Sale</option><option>Purchase Pending</option><option>Loss/Theft</option><option>Tally Error</option><option>Other</option></select><button data-v="${i.id}">Save</button></td></tr>`}).join("")}</table></div></div>`;document.querySelectorAll("[data-v]").forEach(b=>b.onclick=async()=>{let id=b.dataset.v,status=$("#st_"+id).value,reason=$("#vr_"+id).value;await setDoc(doc(db,"variances",id),{itemId:id,difference:dif(id),status,reason,updatedAt:serverTimestamp(),updatedBy:me.uid},{merge:true});if(status==="Resolved")await addDoc(collection(db,"approvals"),{itemId:id,type:"variance_resolution",difference:dif(id),reason,approvedAt:serverTimestamp(),approvedBy:me.uid});alert("Workflow updated")})}
 function reports(m){m.innerHTML=`${table()}<div class="card"><h3>Reports</h3><div class="row"><select id="period"><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Custom</option></select><input type="date" id="from"><input type="date" id="to"><button id="csv">Download Excel-compatible CSV</button></div><p class="muted">Includes Tally, physical, variance and repeated-variance indicator.</p></div>`;$("#csv").onclick=()=>{let lines=[["Item","Tally","Actual","Variance","Repeated Variance","Tally Updated","Actual Updated"],...items.map(i=>[i.name,latest[i.id]?.qty??"",actual[i.id]?.qty??"",dif(i.id),num(actual[i.id]?.varianceStreak)>=2?"YES":"NO",dt(latest[i.id]?.updatedAt),dt(actual[i.id]?.updatedAt)])],csv=lines.map(r=>r.map(x=>`"${String(x).replaceAll('"','""')}"`).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=`inventory-${$("#period").value.toLowerCase()}-${new Date().toISOString().slice(0,10)}.csv`;a.click()}}
-async function users(m){let u=await getDocs(collection(db,"users"));m.innerHTML=`<div class="card"><h3>Users & Rights</h3><p class="muted">Authentication account creation/PIN reset still requires Firebase Admin backend; no Admin secret is exposed in this PWA.</p><div class="scroll"><table><tr><th>Name</th><th>Username</th><th>Role</th><th>Active</th></tr>${u.docs.map(d=>{let x=d.data();return`<tr><td>${esc(x.displayName||"")}</td><td>${esc(x.username||"")}</td><td>${esc(x.role||"")}</td><td>${x.active!==false}</td></tr>`}).join("")}</table></div></div>`}
-onAuthStateChanged(auth,async u=>{if(!u)return login();try{await profile(u);shell();sub()}catch{await signOut(auth);login("Inactive or missing profile")}});
+async function users(m){
+ let u=await getDocs(collection(db,"users"));
+ m.innerHTML=`<div class="card"><h3>Create User</h3>
+ <p class="muted">Master creates the user's Name, PIN and access role. The user only needs those two login details.</p>
+ <div class="row"><input id="newName" placeholder="User name"><input id="newPin" type="password" inputmode="numeric" maxlength="12" placeholder="6–12 digit PIN">
+ <select id="newRole"><option value="actual">Actual Stock User</option><option value="tally">Tally Upload User</option><option value="master">Master</option></select>
+ <button id="createUser">Create User</button></div><p id="userMsg" class="muted"></p></div>
+ <div class="card"><h3>Users & Rights</h3><div class="scroll"><table><tr><th>Name</th><th>Role</th><th>Active</th></tr>
+ ${u.docs.map(d=>{let x=d.data();return`<tr><td>${esc(x.displayName||x.username||"")}</td><td>${esc(x.role||"")}</td><td>${x.active!==false?"Active":"Disabled"}</td></tr>`}).join("")}</table></div></div>`;
+ $("#createUser").onclick=async()=>{
+   let name=$("#newName").value.trim(),pin=$("#newPin").value.trim(),role=$("#newRole").value,id=loginIdFromName(name),msg=$("#userMsg");
+   if(!id)return msg.textContent="Enter a valid user name.";
+   if(!/^\d{6,12}$/.test(pin))return msg.textContent="PIN must be 6–12 digits.";
+   $("#createUser").disabled=true;msg.textContent="Creating user…";
+   let secondary=null, secondaryAuth=null, cred=null;
+   try{
+     secondary=initializeApp(firebaseConfig,"userCreator-"+Date.now());
+     secondaryAuth=getAuth(secondary);
+     cred=await createUserWithEmailAndPassword(secondaryAuth,id+"@inventory.local",pin);
+     await setDoc(doc(db,"users",cred.user.uid),{username:id,displayName:name,role,active:true,createdAt:serverTimestamp(),createdBy:me.uid});
+     await signOut(secondaryAuth); await deleteApp(secondary);
+     msg.innerHTML=`<span class="good">Created successfully.</span> Give the user: Name <b>${esc(name)}</b> and their PIN.`;
+     setTimeout(()=>render("users"),1400);
+   }catch(e){
+     try{if(secondaryAuth)await signOut(secondaryAuth);if(secondary)await deleteApp(secondary)}catch{}
+     msg.textContent=e?.code==="auth/email-already-in-use"?"That user name already exists.":"Could not create user: "+(e?.code||"unknown error");
+     $("#createUser").disabled=false;
+   }
+ }
+}
+onAuthStateChanged(auth,async u=>{
+ if(!u){if(await isBootstrapped())return login();return firstSetup();}
+ try{await profile(u);shell();sub()}catch{await signOut(auth);login("Inactive or missing profile")}
+});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("./sw.js");
 </script></body></html>

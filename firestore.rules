@@ -3,12 +3,32 @@ service cloud.firestore {
  match /databases/{database}/documents {
   function signed(){return request.auth!=null;}
   function p(){return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;}
-  function active(){return signed() && p().active==true;}
+  function active(){return signed() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && p().active==true;}
   function master(){return active() && p().role=="master";}
   function actual(){return active() && p().role=="actual";}
   function tally(){return active() && p().role=="tally";}
+  function notInitialized(){return !exists(/databases/$(database)/documents/system/bootstrap);}
+  function bootstrapAfter(){return getAfter(/databases/$(database)/documents/system/bootstrap).data;}
 
-  match /users/{uid}{allow read:if master()||(signed()&&request.auth.uid==uid);allow write:if master();}
+  match /system/bootstrap {
+    allow read: if true;
+    allow create: if signed() && notInitialized()
+      && request.resource.data.initialized == true
+      && request.resource.data.masterUid == request.auth.uid
+      && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "master";
+    allow update, delete: if false;
+  }
+
+  match /users/{uid}{
+    allow read:if master()||(signed()&&request.auth.uid==uid);
+    allow create:if master() || (
+      signed() && request.auth.uid==uid && notInitialized()
+      && request.resource.data.role=="master"
+      && request.resource.data.active==true
+      && bootstrapAfter().masterUid==request.auth.uid
+    );
+    allow update,delete:if master();
+  }
   match /items/{id}{allow read:if active();allow write:if master();}
   match /stockLatest/{id}{allow read,create,update:if master()||tally();allow delete:if master();}
   match /actualLatest/{id}{allow read,create,update:if master()||actual();allow delete:if master();}
