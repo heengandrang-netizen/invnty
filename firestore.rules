@@ -35,7 +35,9 @@ service cloud.firestore {
     allow create,update:if (master()||tally())
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && request.resource.data.updatedBy==request.auth.uid
-      && exists(/databases/$(database)/documents/items/$(id));
+      && exists(/databases/$(database)/documents/items/$(id))
+      && ((request.resource.data.importId is string && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)))
+          || (request.resource.data.restoredFromImportId is string && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.restoredFromImportId))));
     allow delete:if master();
   }
   match /actualLatest/{id}{
@@ -43,7 +45,9 @@ service cloud.firestore {
     allow create,update:if (master()||actual())
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && request.resource.data.updatedBy==request.auth.uid
-      && exists(/databases/$(database)/documents/items/$(id));
+      && exists(/databases/$(database)/documents/items/$(id))
+      && request.resource.data.sessionId is string
+      && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
     allow delete:if master();
   }
   match /countSessions/{id}{allow read:if master()||actual();allow write:if master();}
@@ -63,7 +67,14 @@ service cloud.firestore {
       && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
     allow delete:if false;
   }
-  match /actualHistory/{id}{allow read:if master();allow create:if master()||actual();allow update,delete:if false;}
+  match /actualHistory/{id}{
+    allow read:if master();
+    allow create:if (master()||actual())
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.newQty is number && request.resource.data.newQty>=0
+      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
+    allow update,delete:if false;
+  }
   match /tallyImports/{id}{
     allow read:if master()||tally();
     allow create:if (master()||tally()) && request.resource.data.createdBy==request.auth.uid;
@@ -91,8 +102,8 @@ service cloud.firestore {
     allow delete:if false;
   }
   match /movements/{id}{
-    allow read:if master();
-    allow create:if master()
+    allow read:if master()||tally();
+    allow create:if (master()||tally())
       && request.resource.data.createdBy==request.auth.uid
       && request.resource.data.qty is number && request.resource.data.qty>0
       && request.resource.data.type in ["IN","OUT"]
