@@ -35,9 +35,14 @@ service cloud.firestore {
     allow create,update:if (master()||tally())
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && request.resource.data.updatedBy==request.auth.uid
-      && exists(/databases/$(database)/documents/items/$(id))
-      && ((request.resource.data.importId is string && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)))
-          || (request.resource.data.restoredFromImportId is string && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.restoredFromImportId))));
+      && existsAfter(/databases/$(database)/documents/items/$(id))
+      && ((request.resource.data.importId is string
+            && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId))
+            && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.createdBy==request.auth.uid
+            && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.status=="processing")
+          || (master()
+            && request.resource.data.restoredFromImportId is string
+            && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.restoredFromImportId))));
     allow delete:if master();
   }
   match /actualLatest/{id}{
@@ -78,16 +83,31 @@ service cloud.firestore {
   match /tallyImports/{id}{
     allow read:if master()||tally();
     allow create:if (master()||tally()) && request.resource.data.createdBy==request.auth.uid;
-    allow update:if (master()||tally())
-      && resource.data.createdBy==request.auth.uid
+    allow update:if active()
       && request.resource.data.createdBy==resource.data.createdBy
       && request.resource.data.fileHash==resource.data.fileHash
-      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","matched","created","rowCount","error","completedAt"]);
+      && (
+        (((master()||tally()) && resource.data.createdBy==request.auth.uid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status","matched","created","rowCount","error","completedAt"]))
+        || (master()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["rolledBackAt","rolledBackBy","rollbackItems","rollbackSkipped"]))
+      );
     allow delete:if false;
   }
   match /tallySnapshots/{id}{
     allow read:if master()||tally();
-    allow create:if (master()||tally()) && request.resource.data.createdBy==request.auth.uid;
+    allow create:if (master()||tally())
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.snapshotVersion==2
+      && request.resource.data.importId is string
+      && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId))
+      && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.createdBy==request.auth.uid
+      && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.status=="processing"
+      && request.resource.data.itemId is string
+      && request.resource.data.importedQty is number && request.resource.data.importedQty>=0
+      && request.resource.data.hadPrevious is bool
+      && ((request.resource.data.hadPrevious==true && request.resource.data.previousQty is number && request.resource.data.previousQty>=0)
+          || (request.resource.data.hadPrevious==false && request.resource.data.previousQty==null));
     allow update,delete:if false;
   }
   match /unitConversionHistory/{id}{allow read,create:if master();allow update,delete:if false;}

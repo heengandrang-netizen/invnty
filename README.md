@@ -1,4 +1,4 @@
-# StockSync Pro — Setup
+# StockSync Pro v18.2 — Setup
 
 ## Included
 - Installable mobile-first PWA
@@ -17,23 +17,15 @@
 2. Enable Authentication > Email/Password.
 3. Create Firestore database.
 4. Paste the Web App config into `firebase-config.js`.
-5. Deploy `firestore.rules`.
-6. Create the first master account in Firebase Authentication:
-   - email: `master@inventory.local`
-   - password: your PIN (Firebase may enforce a minimum password length).
-7. Copy that Authentication user's UID and create Firestore document:
-   `/users/<UID>`
-   with:
-   `username: "master"`
-   `displayName: "Master"`
-   `role: "master"`
-   `active: true`
+5. Deploy the included `firestore.rules`.
+6. Open the app. On a brand-new database the first-run screen creates the one initial Master account. After bootstrap is complete, normal users are created from **Master > Users & Rights**.
 
-For an actual-stock operator use role `actual`; for a Tally uploader use role `tally`.
-Their Auth email follows `<username>@inventory.local`.
+The first-Master setup is permanently disabled after `/system/bootstrap` is created.
 
-## Important production recommendation
-A secure in-app "Master creates user" flow needs a trusted backend (Firebase Cloud Function/Admin SDK), because the browser must never receive Firebase Admin credentials. The starter therefore displays existing users while account provisioning should initially be done from Firebase Console. Add a callable Cloud Function for production user creation/PIN reset.
+## User roles
+- `master`: full app, setup, users, Item Master, Tally, actual stock, reports and approvals.
+- `actual`: physical-count workspace only; Tally quantities remain inaccessible.
+- `tally`: Tally stock/import and movement workflows; actual stock remains inaccessible.
 
 ## Deploy
 Install Firebase CLI, login, initialize/use the project, then:
