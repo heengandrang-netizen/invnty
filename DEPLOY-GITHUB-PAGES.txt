@@ -1,16 +1,24 @@
-STOCKSYNC PRO v10.1 — GITHUB PAGES FIX
+STOCKSYNC PRO v18.4.1 — DEPLOYMENT
 
-IMPORTANT:
 1. Upload the CONTENTS of this folder to the ROOT of your GitHub Pages branch/repository.
-   index.html must be directly at /invnty/index.html — do not upload an extra inventory-reconcile-pwa folder around it.
-2. Keep firebase-config.js, manifest.json, sw.js and icons beside index.html.
-3. Firebase Console > Authentication > Settings > Authorized domains:
-   add: heengandrang-netizen.github.io
-4. Authentication > Sign-in method: Email/Password must be enabled.
-5. Firestore Database must exist and publish the included firestore.rules.
-6. After deploying, hard refresh once or clear site data/service worker if an old cached build remains.
+   index.html, sw.js, manifest.json, firebase-config.js and the icons must remain beside each other.
+2. Firebase Authentication > Settings > Authorized domains: include your GitHub Pages domain.
+3. Authentication > Sign-in method: Email/Password must be enabled.
+4. IMPORTANT: deploy the included firestore.rules to the same Firebase project.
+   v18.4 adds a tightly restricted permission that lets a Tally-role user create only new Item Master records that belong to their currently-processing Tally import. Without the new rules, valid unmatched rows will fail to auto-create.
+5. After deploying, hard refresh once (Ctrl+Shift+R). If installed as a PWA, close/reopen it once so the v18.4 service worker activates.
 
-ROOT CAUSE FIXED:
-v10 had a JavaScript syntax error in User Administration. Because the main module could not parse,
-none of the app startup code executed. v10.1 passes Node JavaScript syntax validation.
-The old HTML title also still said “StockSync Pro v2”; it now says v10.1.
+v18.4 TALLY EASY IMPORT:
+- Valid unmatched rows no longer block Tally upload; they are auto-created.
+- Auto-created items by Tally staff are marked `Imported · review` for Master.
+- Rows without quantity are ignored instead of blocking the full file.
+- Exact duplicate rows with the same quantity are automatically de-duplicated.
+- Conflicting duplicates, ambiguous mappings and invalid quantities show an inline Fix Issues panel with Quantity, Map to item and Skip row controls.
+- Minor spelling differences with matching size/number can be smart auto-matched; numeric variants (e.g. 10g vs 20g) are never auto-matched merely because names are similar.
+
+
+v18.4.1 ZERO-STOCK IMPORT:
+- Tally zero stock is valid and imported.
+- Keep Zero-stock mode ON to treat matched blank closing balances as zero.
+- Blank unmatched rows remain ignored for safety.
+- Hard refresh/reopen the PWA so the v18.4.1 cache activates.

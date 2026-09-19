@@ -1,4 +1,4 @@
-const CACHE="stocksync-v18-2-deep-regression";
+const CACHE="stocksync-v18-5-alt-uom";
 const CORE=["./","./index.html","./manifest.json","./firebase-config.js","./icon-192.svg","./icon-512.svg"];
 const EXTERNAL=[
   "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",

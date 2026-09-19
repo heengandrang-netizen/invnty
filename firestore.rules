@@ -29,7 +29,28 @@ service cloud.firestore {
     );
     allow update,delete:if master();
   }
-  match /items/{id}{allow read:if active();allow write:if master();}
+  match /items/{id}{
+    allow read:if active();
+    allow create:if master() || (tally()
+      && request.resource.data.keys().hasOnly(["name","aliases","unit","packUnit","packSize","sensitive","active","pendingReview","createdAt","createdBy","source","importId"])
+      && request.resource.data.keys().hasAll(["name","aliases","unit","packUnit","packSize","sensitive","active","pendingReview","createdAt","createdBy","source","importId"])
+      && request.resource.data.name is string
+      && request.resource.data.aliases is list
+      && request.resource.data.unit is string
+      && request.resource.data.packUnit is string
+      && request.resource.data.packSize is number && request.resource.data.packSize>=0
+      && request.resource.data.sensitive==false
+      && request.resource.data.active==true
+      && request.resource.data.pendingReview==true
+      && request.resource.data.createdAt==request.time
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.source=="tally_import_auto"
+      && request.resource.data.importId is string
+      && exists(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId))
+      && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.createdBy==request.auth.uid
+      && get(/databases/$(database)/documents/tallyImports/$(request.resource.data.importId)).data.status=="processing");
+    allow update,delete:if master();
+  }
   match /stockLatest/{id}{
     allow read:if master()||tally();
     allow create,update:if (master()||tally())
@@ -55,7 +76,17 @@ service cloud.firestore {
       && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
     allow delete:if master();
   }
-  match /countSessions/{id}{allow read:if master()||actual();allow write:if master();}
+  match /countSessions/{id}{
+    allow read:if master()||actual();
+    allow create:if master() || (actual()
+      && id.matches('auto-[0-9]{8}-[0-9]+')
+      && request.resource.data.status=="open"
+      && request.resource.data.autoCreated==true
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdAt==request.time
+      && request.resource.data.keys().hasOnly(["name","status","autoCreated","createdAt","createdBy"]));
+    allow update,delete:if master();
+  }
   match /countEntries/{id}{
     allow read:if master()||actual();
     allow create:if (master()||actual())
