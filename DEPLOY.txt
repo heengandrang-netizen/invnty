@@ -1,0 +1,19 @@
+StockSync Pro v18.11 — Clean Deploy Package
+
+Website/PWA:
+- index.html
+- manifest.json
+- sw.js
+- firebase-config.js
+- icon-192.svg / icon-512.svg
+- .nojekyll
+
+Firebase backend/security:
+- firebase.json
+- firestore.rules
+- storage.rules
+- functions/index.js
+- functions/package.json
+
+For v18.10.2+ Smart Bill Scan backend OCR, deploy Firebase Functions and keep Cloud Vision API enabled.
+Deploy Firestore/Storage rules when moving to a fresh Firebase project or when older rules are currently deployed.

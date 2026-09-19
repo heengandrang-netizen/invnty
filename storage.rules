@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function profile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid));
+    }
+    function movementUser() {
+      return signedIn()
+        && profile().data.role in ['master', 'tally']
+        && (!('active' in profile().data) || profile().data.active != false);
+    }
+    match /billScans/{uid}/{fileName} {
+      allow read: if movementUser();
+      allow create: if movementUser()
+        && request.auth.uid == uid
+        && request.resource.size <= 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType == 'application/pdf');
+      allow update, delete: if false;
+    }
+    match /billScanTemp/{uid}/{fileName} {
+      // Temporary upload used only by the authenticated callable backend OCR.
+      // The Cloud Function deletes it after the server-side scan.
+      allow read: if false;
+      allow create: if movementUser()
+        && request.auth.uid == uid
+        && request.resource.size <= 10 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*')
+            || request.resource.contentType == 'application/pdf');
+      allow update: if false;
+      allow delete: if movementUser() && request.auth.uid == uid;
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

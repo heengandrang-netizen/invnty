@@ -161,6 +161,24 @@ service cloud.firestore {
       && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
     allow update,delete:if false;
   }
+  match /ocrMappings/{id}{
+    allow read:if active();
+    allow create:if (master()||tally())
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.updatedBy==request.auth.uid
+      && request.resource.data.key is string && request.resource.data.key.size()>0
+      && request.resource.data.sourceText is string
+      && request.resource.data.itemId is string
+      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
+    allow update:if (master()||tally())
+      && request.resource.data.createdBy==resource.data.createdBy
+      && request.resource.data.updatedBy==request.auth.uid
+      && request.resource.data.key==resource.data.key
+      && request.resource.data.itemId is string
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["itemId","sourceText","updatedAt","updatedBy"])
+      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
+    allow delete:if master();
+  }
   match /variances/{id}{allow read,write:if master();}
   match /approvals/{id}{allow read,create:if master();allow update,delete:if false;}
   match /{document=**}{allow read,write:if false;}
