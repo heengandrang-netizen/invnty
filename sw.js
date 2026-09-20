@@ -1,4 +1,4 @@
-const CACHE="stocksync-v18-11-continuous-stock-register-reconciliation";
+const CACHE="stocksync-v18-11-5-bill-parser";
 const CORE=["./","./index.html","./manifest.json","./firebase-config.js","./icon-192.svg","./icon-512.svg"];
 const EXTERNAL=[
   "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",

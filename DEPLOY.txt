@@ -1,19 +1,14 @@
-StockSync Pro v18.11 — Clean Deploy Package
+StockSync Pro v18.11.5 CLEAN
 
-Website/PWA:
-- index.html
-- manifest.json
-- sw.js
-- firebase-config.js
-- icon-192.svg / icon-512.svg
-- .nojekyll
+Deploy all files/folders in this directory.
 
-Firebase backend/security:
-- firebase.json
-- firestore.rules
-- storage.rules
-- functions/index.js
-- functions/package.json
+v18.11.5 bill scan fixes:
+- stronger PDF row extraction and hybrid OCR fallback
+- handles Qty→UOM and UOM→Qty table layouts, wrapped product names, HSN/code noise, model numbers and repeated lines
+- smarter automatic Item Master mapping using cleaned product-name variants
+- learned OCR mappings also reuse safe cleaned variants
+- local PDF scan supports up to 30 pages; backend Cloud Vision scan now checks successive 5-page windows up to 30 pages
 
-For v18.10.2+ Smart Bill Scan backend OCR, deploy Firebase Functions and keep Cloud Vision API enabled.
-Deploy Firestore/Storage rules when moving to a fresh Firebase project or when older rules are currently deployed.
+IMPORTANT: functions/index.js changed in this release. If backend document OCR is enabled, redeploy the Firebase Functions so multi-page backend scanning uses the new logic. Firestore and Storage rules are unchanged from v18.11.4.
+
+After deploy: hard refresh (Ctrl+Shift+R) or fully close/reopen the installed PWA.
