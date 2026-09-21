@@ -1,6 +1,12 @@
-StockSync Pro v18.12 CONTROL CENTER
+StockSync Pro v18.13 MULTI-ITEM STOCK OUT
 
 Deploy all files/folders in this directory.
+
+v18.13 approved improvement:
+- Stock OUT now supports 4–5 or more products in one entry flow (up to 450 products per atomic batch).
+- Each line has independent product search and quantity, with shared reason, reference and note.
+- Duplicate-product validation, invalid quantity validation and over-stock confirmation are included.
+- Ledger rows show their batch line number for a clear permanent audit trail.
 
 v18.12 approved improvements:
 - Sync Health Center with pending-write, network, Firestore, Storage and bill-OCR visibility

@@ -1,4 +1,4 @@
-const CACHE="stocksync-v18-12-control-center";
+const CACHE="stocksync-v18-13-multi-stock-out";
 const CORE=["./","./index.html","./manifest.json","./firebase-config.js","./icon-192.svg","./icon-512.svg"];
 const EXTERNAL=[
   "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
