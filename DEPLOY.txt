@@ -1,14 +1,27 @@
-StockSync Pro v18.11.5 CLEAN
+StockSync Pro v18.12 CONTROL CENTER
 
 Deploy all files/folders in this directory.
 
-v18.11.5 bill scan fixes:
-- stronger PDF row extraction and hybrid OCR fallback
-- handles Qty→UOM and UOM→Qty table layouts, wrapped product names, HSN/code noise, model numbers and repeated lines
-- smarter automatic Item Master mapping using cleaned product-name variants
-- learned OCR mappings also reuse safe cleaned variants
-- local PDF scan supports up to 30 pages; backend Cloud Vision scan now checks successive 5-page windows up to 30 pages
+v18.12 approved improvements:
+- Sync Health Center with pending-write, network, Firestore, Storage and bill-OCR visibility
+- transaction-backed global count-session lock for safer start, lock and reopen actions
+- focused Home dashboards for Actual Stock User and Tally User
+- visible per-record pending cloud state for physical counts and IN/OUT entries
+- user-controlled PWA update prompt instead of silently mixing cached versions
+- Bill Review Mode with confidence flags, unmatched-only view and resumable device draft
+- CSV audit export and monthly closing-stock checkpoints
+- simpler mobile navigation, readable type sizes, Escape handling and modal focus containment
 
-IMPORTANT: functions/index.js changed in this release. If backend document OCR is enabled, redeploy the Firebase Functions so multi-page backend scanning uses the new logic. Firestore and Storage rules are unchanged from v18.11.4.
+v18.11.6 audit fixes retained:
+- role access now updates immediately when Master changes or disables a user
+- login shows actionable cloud/network/configuration errors instead of always saying wrong PIN
+- physical-count publication is atomically linked to its immutable count audit entry
+- Firestore rules now prevent untracked physical totals and spoofed movement timestamps
+- partial bill-post retry now handles repeated identical lines one-by-one without skipping an unsaved duplicate
+- image/PDF uploads preserve the correct MIME type when the browser omits it
+- missing colour tokens and low-contrast secondary/warning text were corrected
+- v18.11.5 PDF extraction, OCR mapping and 30-page backend scanning remain included
+
+IMPORTANT: firestore.rules changed in this release and must be deployed with the frontend. functions/index.js still includes the v18.11.5 multi-page OCR changes, so deploy Functions too if that prior change is not live yet. Storage rules are unchanged.
 
 After deploy: hard refresh (Ctrl+Shift+R) or fully close/reopen the installed PWA.

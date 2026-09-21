@@ -9,6 +9,7 @@ service cloud.firestore {
   function tally(){return active() && p().role=="tally";}
   function notInitialized(){return !exists(/databases/$(database)/documents/system/bootstrap);}
   function bootstrapAfter(){return getAfter(/databases/$(database)/documents/system/bootstrap).data;}
+  function linkedCountEntry(){return getAfter(/databases/$(database)/documents/countEntries/$(request.resource.data.countEntryId)).data;}
 
   match /system/bootstrap {
     allow read: if true;
@@ -71,9 +72,16 @@ service cloud.firestore {
     allow create,update:if (master()||actual())
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && request.resource.data.updatedBy==request.auth.uid
+      && request.resource.data.updatedAt==request.time
       && exists(/databases/$(database)/documents/items/$(id))
       && request.resource.data.sessionId is string
-      && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
+      && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open"
+      && request.resource.data.countEntryId is string
+      && existsAfter(/databases/$(database)/documents/countEntries/$(request.resource.data.countEntryId))
+      && linkedCountEntry().itemId==id
+      && linkedCountEntry().sessionId==request.resource.data.sessionId
+      && linkedCountEntry().createdBy==request.auth.uid
+      && linkedCountEntry().qty==request.resource.data.qty;
     allow delete:if master();
   }
   match /countSessions/{id}{
@@ -82,15 +90,31 @@ service cloud.firestore {
       && id.matches('auto-[0-9]{8}-[0-9]+')
       && request.resource.data.status=="open"
       && request.resource.data.autoCreated==true
+      && request.resource.data.version==1
       && request.resource.data.createdBy==request.auth.uid
       && request.resource.data.createdAt==request.time
-      && request.resource.data.keys().hasOnly(["name","status","autoCreated","createdAt","createdBy"]));
+      && request.resource.data.keys().hasOnly(["name","status","autoCreated","createdAt","createdBy","version"]));
     allow update,delete:if master();
+  }
+  match /countControl/{id}{
+    allow read:if master()||actual();
+    allow create,update:if master() || (actual()
+      && request.resource.data.openSessionId is string
+      && request.resource.data.openSessionId.size()>0
+      && request.resource.data.version is number
+      && request.resource.data.updatedAt==request.time
+      && request.resource.data.updatedBy==request.auth.uid
+      && existsAfter(/databases/$(database)/documents/countSessions/$(request.resource.data.openSessionId))
+      && getAfter(/databases/$(database)/documents/countSessions/$(request.resource.data.openSessionId)).data.status=="open"
+      && getAfter(/databases/$(database)/documents/countSessions/$(request.resource.data.openSessionId)).data.autoCreated==true
+      && getAfter(/databases/$(database)/documents/countSessions/$(request.resource.data.openSessionId)).data.createdBy==request.auth.uid);
+    allow delete:if false;
   }
   match /countEntries/{id}{
     allow read:if master()||actual();
     allow create:if (master()||actual())
       && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdAt==request.time
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId))
       && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
@@ -99,6 +123,7 @@ service cloud.firestore {
       && request.resource.data.createdBy==request.auth.uid
       && request.resource.data.itemId==resource.data.itemId
       && request.resource.data.sessionId==resource.data.sessionId
+      && request.resource.data.createdAt==request.time
       && request.resource.data.qty is number && request.resource.data.qty>=0
       && get(/databases/$(database)/documents/countSessions/$(request.resource.data.sessionId)).data.status=="open";
     allow delete:if false;
@@ -107,8 +132,15 @@ service cloud.firestore {
     allow read:if master();
     allow create:if (master()||actual())
       && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdAt==request.time
       && request.resource.data.newQty is number && request.resource.data.newQty>=0
-      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
+      && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId))
+      && request.resource.data.countEntryId is string
+      && existsAfter(/databases/$(database)/documents/countEntries/$(request.resource.data.countEntryId))
+      && linkedCountEntry().itemId==request.resource.data.itemId
+      && linkedCountEntry().sessionId==request.resource.data.sessionId
+      && linkedCountEntry().createdBy==request.auth.uid
+      && linkedCountEntry().qty==request.resource.data.newQty;
     allow update,delete:if false;
   }
   match /tallyImports/{id}{
@@ -156,6 +188,7 @@ service cloud.firestore {
     allow read:if master()||tally();
     allow create:if (master()||tally())
       && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.createdAt==request.time
       && request.resource.data.qty is number && request.resource.data.qty>0
       && request.resource.data.type in ["IN","OUT"]
       && exists(/databases/$(database)/documents/items/$(request.resource.data.itemId));
@@ -181,6 +214,22 @@ service cloud.firestore {
   }
   match /variances/{id}{allow read,write:if master();}
   match /approvals/{id}{allow read,create:if master();allow update,delete:if false;}
+  match /auditCheckpoints/{id}{
+    allow read:if master();
+    allow create,update:if master()
+      && request.resource.data.month==id
+      && request.resource.data.createdBy==request.auth.uid
+      && request.resource.data.status in ["processing","complete"];
+    allow delete:if false;
+    match /items/{itemId}{
+      allow read:if master();
+      allow create,update:if master()
+        && request.resource.data.itemId==itemId
+        && request.resource.data.createdBy==request.auth.uid
+        && request.resource.data.createdAt==request.time;
+      allow delete:if false;
+    }
+  }
   match /{document=**}{allow read,write:if false;}
  }
 }

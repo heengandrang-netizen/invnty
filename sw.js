@@ -1,4 +1,4 @@
-const CACHE="stocksync-v18-11-5-bill-parser";
+const CACHE="stocksync-v18-12-control-center";
 const CORE=["./","./index.html","./manifest.json","./firebase-config.js","./icon-192.svg","./icon-512.svg"];
 const EXTERNAL=[
   "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js",
@@ -26,8 +26,8 @@ self.addEventListener("install",e=>e.waitUntil((async()=>{
   const cache=await caches.open(CACHE);
   await cache.addAll(CORE);
   await cacheExternal();
-  await self.skipWaiting();
 })()));
+self.addEventListener("message",e=>{if(e.data?.type==="SKIP_WAITING")self.skipWaiting()});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
 self.addEventListener("fetch",e=>{
   if(e.request.method!=="GET")return;
